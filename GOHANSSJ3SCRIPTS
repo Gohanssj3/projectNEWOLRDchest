@@ -1,0 +1,145 @@
+if not game:IsLoaded() then
+
+   game.Loaded:Wait()
+
+   
+
+   task.wait(5)
+
+end
+
+local tweenService = game:GetService("TweenService")
+
+local players = game:GetService("Players")
+
+local serverhop = loadstring(game:HttpGet("https://raw.githubusercontent.com/Rain-Design/Libraries/main/HopFunction"))()
+
+local player = players.LocalPlayer
+
+local function tween(position)
+
+   local tween = tweenService:Create(player.Character.HumanoidRootPart, TweenInfo.new((player.Character.HumanoidRootPart.Position - position.p).Magnitude / 500, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {CFrame = position})
+
+   tween:Play()
+
+   
+
+   local tweenCompleted = false
+
+   
+
+   tween.Completed:Once(function()
+
+       tweenCompleted = true
+
+   end)
+
+   
+
+   while not tweenCompleted do
+
+       if not player.Character or (player.Character and not player.Character:FindFirstChild("HumanoidRootPart")) then
+
+           break
+
+       end
+
+       if player.Character:FindFirstChild("TopHead") then
+
+           player.Character.TopHead:Destroy()
+
+       end
+
+       
+
+       task.spawn(function()
+
+           for _, v in pairs(player.Character:GetChildren()) do
+
+               if v:IsA("BasePart") then
+
+                   v.CanCollide = false
+
+               end
+
+           end
+
+       end)
+
+       
+
+       player.Character.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+
+       task.wait()
+
+   end
+
+end
+
+local function pickChest(chest)
+
+   if (player.Character and not player.Character:FindFirstChild("HumanoidRootPart")) or not chest:FindFirstChild("Hitbox") then return end
+
+   firetouchinterest(player.Character.HumanoidRootPart, chest.Hitbox, 0)
+
+   firetouchinterest(player.Character.HumanoidRootPart, chest.Hitbox, 1)
+
+   chest:Destroy()
+
+end
+
+local function getDistance(part)
+
+   if player.Character and not player.Character:FindFirstChild("HumanoidRootPart") then return end
+
+   return (player.Character.HumanoidRootPart.Position - part.Position).Magnitude
+
+end
+
+local function getNearestChest()
+
+   local chest, distance = nil, math.huge
+
+   for _, v in pairs(workspace:GetChildren()) do
+
+       if v.ClassName == "Model" and v.Name == "Chest" and (v:FindFirstChild("Main") and v:FindFirstChild("Body") and v:FindFirstChild("Hitbox")) and v.Body.Transparency == 0 then
+
+           local magnitude = getDistance(v.Main)
+
+           if distance > magnitude then
+
+               chest, distance = v, magnitude
+
+           end
+
+       end
+
+   end
+
+   return chest
+
+end
+
+while true do
+
+   if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+
+       local chest = getNearestChest()
+
+       if chest then
+
+           tween(chest.Main.CFrame)
+
+           pickChest(chest)
+
+       else
+
+           serverhop()
+
+       end
+
+   end
+
+   task.wait()
+
+end
